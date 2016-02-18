@@ -58,6 +58,8 @@ using namespace std;
 #include "lasindex.hpp"
 #include "lasquadtree.hpp"
 
+#include "mpi.h"
+
 class OffsetSize
 {
 public:
@@ -96,6 +98,7 @@ static void byebye(bool error=false, bool wait=false)
     fprintf(stderr,"<press ENTER>\n");
     getc(stdin);
   }
+  MPI_Finalize();
   exit(error);
 }
 
@@ -114,6 +117,7 @@ extern int laszip_multi_core(int argc, char *argv[], GeoProjectionConverter* geo
 
 int main(int argc, char *argv[])
 {
+  MPI_Init(&argc, &argv);
   int i;
   BOOL dry = FALSE;
 #ifdef COMPILE_WITH_GUI
@@ -165,7 +169,7 @@ int main(int argc, char *argv[])
   {
     for (i = 1; i < argc; i++)
     {
-      if (argv[i][0] == '–') argv[i][0] = '-';
+      if (argv[i][0] == 'ï¿½') argv[i][0] = '-';
     }
     if (!geoprojectionconverter.parse(argc, argv)) byebye(true);
     if (!lasreadopener.parse(argc, argv)) byebye(true);
@@ -723,7 +727,7 @@ int main(int argc, char *argv[])
       else
       {
         // loop over points
-
+printf("last else\n");
         if (lasreadopener.is_header_populated())
         {
           if (lax) // should we also create a spatial indexing file
@@ -782,6 +786,7 @@ int main(int argc, char *argv[])
             }
             else
             {
+              printf("last else in header populated\n");
               while (lasreader->read_point())
               {
                 laswriter->write_point(&lasreader->point);

@@ -3,4 +3,6 @@ Release
 Debug
 lastools.ncb
 lastools.opt
+bin
+*.o
 *~

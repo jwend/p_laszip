@@ -1,8 +1,10 @@
 # makefile for liblas.a
 #
 #COPTS    = -g -Wall
-COPTS     = -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED
-COMPILER  = g++
+COPTS     = -O2 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED
+#COMPILER  = g++
+COMPILER ?= mpic++
+LINKER ?= mpic++
 AR  = ar rc
 #BITS     = -64
 

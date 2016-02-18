@@ -1,3 +1,10 @@
+DEBUG_LEVEL=3
+
+ifneq ($(DEBUG_LEVEL),0)
+export DEBUG_OPTS=-DDEBUG -DDEBUG_LEVEL=${DEBUG_LEVEL}
+endif
+
+
 all:
 	cd LASlib && make
 	cd LASzip && make

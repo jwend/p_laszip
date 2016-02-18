@@ -1,10 +1,12 @@
 # makefile for LGPL-licensed LAStools
 #
 #COPTS    = -g -Wall -Wno-deprecated -DDEBUG 
-COPTS     = -O3 -Wall -Wno-deprecated -DNDEBUG 
+COPTS     = -O2 -Wall -Wno-deprecated -DNDEBUG 
 #COMPILER  = CC
-COMPILER  = g++
-LINKER  = g++
+#COMPILER  = g++
+#LINKER  = g++
+COMPILER ?= mpic++
+LINKER ?= mpic++
 #BITS     = -64
 
 #LIBS     = -L/usr/lib64
