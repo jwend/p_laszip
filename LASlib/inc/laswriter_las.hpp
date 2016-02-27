@@ -73,6 +73,10 @@ public:
   LASwriterLAS();
   ~LASwriterLAS();
 
+  // mpi
+  ByteStreamOut* get_stream() { return stream; };
+  LASwritePoint* get_writer(){return writer;};
+
 private:
   BOOL open(ByteStreamOut* stream, const LASheader* header, U32 compressor, I32 requested_version, I32 chunk_size);
   ByteStreamOut* stream;

@@ -1,9 +1,8 @@
-
 /*
  * debug.hpp
  *
- *  Created on: , 02182016
- *      Author: jwendel@usgs.gov
+ *  Created on: Sep 8, 2015
+ *      Author: jwendel
  */
 // example
 // dbg(5,"test object class %s and declared name %s", typeid(*lasreader).name(), quote(*lasreader));
@@ -21,7 +20,7 @@
 
 #define dbg(level,fmt, ...) \
         do { if (DEBUG_LEVEL>=level) fprintf(stderr, "%s:%d:%s(): " fmt"\n", __FILE__, \
-                                __LINE__, __func__, __VA_ARGS__); } while (0)
+                                __LINE__, __func__, ##__VA_ARGS__); } while (0)
 
 #define quote(x) #x
 

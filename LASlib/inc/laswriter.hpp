@@ -44,6 +44,10 @@
 
 #include "lasutility.hpp"
 
+
+class ByteStreamOut;
+class LASwritePoint;
+
 class LASLIB_DLL LASwriter
 {
 public:
@@ -61,6 +65,11 @@ public:
 
   LASwriter() { npoints = 0; p_count = 0; };
   virtual ~LASwriter() {};
+
+  // mpi
+  virtual ByteStreamOut* get_stream(){return 0;};
+  virtual LASwritePoint* get_writer(){return 0;};
+
 };
 
 #include "laswaveform13writer.hpp"

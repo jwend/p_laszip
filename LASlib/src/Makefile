@@ -1,7 +1,7 @@
 # makefile for liblas.a
 #
 #COPTS    = -g -Wall
-COPTS     = -O2 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED
+COPTS     = -g -w -DNDEBUG -DUNORDERED ${DEBUG_OPTS}
 #COMPILER  = g++
 COMPILER ?= mpic++
 LINKER ?= mpic++

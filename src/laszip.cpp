@@ -2,6 +2,7 @@
 ===============================================================================
 
   FILE:  laszip.cpp
+
   
   CONTENTS:
   
@@ -40,6 +41,8 @@
 ===============================================================================
 */
 
+#include "debug.hpp"
+
 #include <time.h>
 #include <stdlib.h>
 
@@ -57,6 +60,7 @@ using namespace std;
 #include "geoprojectionconverter.hpp"
 #include "lasindex.hpp"
 #include "lasquadtree.hpp"
+#include "laswritepoint.hpp"
 
 #include "mpi.h"
 
@@ -495,6 +499,7 @@ int main(int argc, char *argv[])
         lasreader->header.del_geo_ascii_params();
       }
 
+      //********************** INITIAL WAVEFORM CODE *****************************************
       // almost never open laswaveform13reader and laswaveform13writer (-:
 
       LASwaveform13reader* laswaveform13reader = 0;
@@ -541,7 +546,7 @@ int main(int argc, char *argv[])
           }
         }
       }
-
+      // *************************************** INITIAL WAVEFORM CODE END *******************************************
       I64 bytes_written = 0;
 
       // open laswriter
@@ -587,7 +592,7 @@ int main(int argc, char *argv[])
 
       // should we also deal with waveform data
 
-      if (waveform)
+      if (waveform) // ************************** START WAVEFORM *********************************************
       {
         U8 compression_type = (laswaveform13reader->is_compressed() ? 1 : 0);
         for (i = 0; i < 255; i++) if (lasreader->header.vlr_wave_packet_descr[i]) lasreader->header.vlr_wave_packet_descr[i]->setCompressionType(compression_type);
@@ -723,11 +728,11 @@ int main(int argc, char *argv[])
             lasindex.write(laswriteopener.get_file_name());
           }
         }
-      }
+      }  // **************************** END WAVEFORM ********************************************************
       else
       {
         // loop over points
-printf("last else\n");
+//dbg(3, "last else");
         if (lasreadopener.is_header_populated())
         {
           if (lax) // should we also create a spatial indexing file
@@ -764,7 +769,7 @@ printf("last else\n");
               lasindex.write(laswriteopener.get_file_name());
             }
           }
-          else
+          else // lax is null
           {
             if (end_of_points > -1)
             {
@@ -784,16 +789,78 @@ printf("last else\n");
               }
               laswriter->update_header(&lasreader->header, TRUE);
             }
-            else
+            else // end_of_points <= -1
             {
-              printf("last else in header populated\n");
+#include <typeinfo>
+              I64 point_start_offset, point_end_offset;
+              I64 point_start, point_end;
+
+
+
+
+              int process_count, rank;
+
+              MPI_Comm_size(MPI_COMM_WORLD, &process_count);
+              MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+              // ***** Determine the start and stop points for this process *****
+              I64 left_over_count = lasreader->npoints % process_count;
+              I64 process_points = lasreader->npoints / process_count;
+              point_start = rank*process_points;
+              point_end =  point_start + process_points;
+              if(rank == process_count-1) point_end += left_over_count;
+
+              dbg(3, "rank %i point_start %lli point_end %lli", rank, point_start, point_end);
+
+
+
+
+              //dbg(3, "last else in header populated %s", "string");
+              point_start_offset = laswriter->get_stream()->tell();
+              //dbg(3,"%s",typeid(laswriter).name());
+
+              lasreader->seek(point_start);
+
               while (lasreader->read_point())
               {
                 laswriter->write_point(&lasreader->point);
+                if(laswriter->p_count == point_end-point_start)
+                {
+                  break;
+                }
               }
+              bytes_written = laswriter->close();
+              MPI_Barrier(MPI_COMM_WORLD);
+              laswriter = laswriteopener.open(&lasreader->header);
+
+              // Gather bytes_written from other processes and set file pointer to bytes_written-header end sum for all previous processes
+              //laswriter->get_stream()->seek(TODO)
+
+
+              lasreader->seek(point_start);
+
+               while (lasreader->read_point())
+               {
+                 laswriter->write_point(&lasreader->point);
+                 if(laswriter->p_count == point_end-point_start)
+                 {
+                   break;
+                 }
+               }
+
+
+
+
+              //laswriter->get_writer()->done();
+              point_end_offset = laswriter->get_stream()->tell();
+
+              dbg(3, "rank %i point_start_offset %lli  point_end_offset %lli", rank, point_start_offset, point_end_offset);
+
+
+
             }
             // flush the writer
-            bytes_written = laswriter->close();
+            //bytes_written = laswriter->close();
           }
         }
         else

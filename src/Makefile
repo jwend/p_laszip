@@ -1,7 +1,7 @@
 # makefile for LGPL-licensed LAStools
 #
 #COPTS    = -g -Wall -Wno-deprecated -DDEBUG 
-COPTS     = -O2 -Wall -Wno-deprecated -DNDEBUG 
+COPTS     = -g -w -DNDEBUG ${DEBUG_OPTS}
 #COMPILER  = CC
 #COMPILER  = g++
 #LINKER  = g++

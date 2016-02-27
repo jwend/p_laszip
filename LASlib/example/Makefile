@@ -1,7 +1,7 @@
 # makefile for lasexample
 #
 #COPTS    = -g -Wall
-COPTS     = -O2 -Wall
+COPTS     = -g -w ${DEBUG_OPTS}
 #COMPILER  = g++
 #LINKER  = g++
 COMPILER ?= mpic++
