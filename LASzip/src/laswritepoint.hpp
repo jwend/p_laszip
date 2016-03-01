@@ -60,7 +60,9 @@ public:
   BOOL chunk();
   BOOL done();
 
-private:
+//private:
+//mpi, make public for now
+public:
   ByteStreamOut* outstream;
   U32 num_writers;
   LASwriteItem** writers;
