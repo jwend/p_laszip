@@ -43,6 +43,8 @@
 #include "laszip.hpp"
 #include "bytestreamout.hpp"
 
+#include "mpi.h"
+
 class LASwriteItem;
 class ArithmeticEncoder;
 
@@ -80,6 +82,9 @@ public:
   I64 chunk_table_start_position;
   BOOL add_chunk_to_table();
   BOOL write_chunk_table();
+
+  int rank;
+  int process_count;
 };
 
 #endif

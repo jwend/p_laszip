@@ -56,6 +56,14 @@ LASwritePoint::LASwritePoint()
   chunk_bytes = 0;
   chunk_table_start_position = 0;
   chunk_start_position = 0;
+
+  rank = 0;
+  process_count = 1;
+
+  MPI_Comm_size(MPI_COMM_WORLD, &process_count);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+
 }
 
 BOOL LASwritePoint::setup(const U32 num_items, const LASitem* items, const LASzip* laszip)
@@ -220,7 +228,7 @@ BOOL LASwritePoint::init(ByteStreamOut* outstream)
     {
       chunk_table_start_position = -1;
     }
-    outstream->put64bitsLE((U8*)&chunk_table_start_position);
+    if(rank==0) outstream->put64bitsLE((U8*)&chunk_table_start_position);
     chunk_start_position = outstream->tell();
   }
 
@@ -339,32 +347,42 @@ BOOL LASwritePoint::add_chunk_to_table()
 
 BOOL LASwritePoint::write_chunk_table()
 {
+
+  if(rank==process_count-1)
+  {
   U32 i;
   I64 position = outstream->tell();
   if (chunk_table_start_position != -1) // stream is seekable
   {
+
+
     if (!outstream->seek(chunk_table_start_position))
     {
       return FALSE;
     }
+
     if (!outstream->put64bitsLE((U8*)&position))
     {
       return FALSE;
     }
-    if (!outstream->seek(position))
+
+    if (!outstream->seek(position) && rank==process_count-1)
     {
       return FALSE;
     }
   }
   U32 version = 0;
+
   if (!outstream->put32bitsLE((U8*)&version))
   {
     return FALSE;
   }
+
   if (!outstream->put32bitsLE((U8*)&number_chunks))
   {
     return FALSE;
   }
+
   if (number_chunks > 0)
   {
     enc->init(outstream);
@@ -383,6 +401,7 @@ BOOL LASwritePoint::write_chunk_table()
     {
       return FALSE;
     }
+  }
   }
   return TRUE;
 }

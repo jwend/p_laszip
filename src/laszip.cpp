@@ -61,6 +61,7 @@ using namespace std;
 #include "lasindex.hpp"
 #include "lasquadtree.hpp"
 #include "laswritepoint.hpp"
+#include "arithmeticencoder.hpp"
 
 #include "mpi.h"
 
@@ -865,48 +866,64 @@ int main(int argc, char *argv[])
                 }
               }
               MPI_Barrier(MPI_COMM_WORLD);
+              laswriter->get_writer()->enc->done();
               laswriter->get_writer()->add_chunk_to_table();
               MPI_Barrier(MPI_COMM_WORLD);
 
               U32 *number_chunks = (U32*)malloc(sizeof(U32)*process_count);
               MPI_Gather(&(laswriter->get_writer()->number_chunks), 1, MPI_UNSIGNED, number_chunks, 1, MPI_UNSIGNED, process_count-1, MPI_COMM_WORLD);
+              U32 number_chunks_total = 0;
+              for(int i=0; i<process_count; i++) number_chunks_total+=number_chunks[i];
 
-              U32* chunk_sizes = (U32*)malloc(sizeof(U32)*number_chunks;
-              U32* chunk_bytes =  (U32*)malloc(sizeof(U32)*number_chunks;
-              for(int i=0; i<process_count; i++)
+
+              U32 *chunk_sizes = (U32*)malloc(sizeof(U32)*number_chunks_total);
+              U32 *chunk_bytes =  (U32*)malloc(sizeof(U32)*number_chunks_total);
+
+              dbg(3, "rank %i, before first send", rank);
+
+              MPI_Send(&(laswriter->get_writer()->chunk_sizes), laswriter->get_writer()->number_chunks, MPI_UNSIGNED, process_count-1, 1, MPI_COMM_WORLD);
+              MPI_Send(&(laswriter->get_writer()->chunk_bytes), laswriter->get_writer()->number_chunks , MPI_UNSIGNED, process_count-1, 2, MPI_COMM_WORLD);
+
+
+              U32 *number_chunks_offsets = (U32 *) malloc(sizeof(U32)*process_count);
+              U32 current_offset = 0;
+              for(int i=0;i<process_count;i++)
               {
-                if(rank==i)
-                {
-                  MPI_Send(laswriter->get_writer()->chunk_sizes, number_chunks[i], MPI_UNSIGNED, process_count-1, 1, MPI_COMM_WORLD);
-                  MPI_Send(laswriter->get_writer()->chunk_bytes, number_chunks[i], MPI_UNSIGNED, process_count-1, 2, MPI_COMM_WORLD);
-                }
+                number_chunks_offsets[i] = current_offset;
+                current_offset += number_chunks[i];
               }
+
+              MPI_Status status;
               if(rank==process_count-1)
               {
                 for (int i = 0; i < process_count; i++)
                 {
-                  //MPI_Send (laswriter->get_writer ()->chunk_sizes, number_chunks[i], MPI_UNSIGNED, process_count - 1, 1, MPI_COMM_WORLD);
-                  //MPI_Send (laswriter->get_writer ()->chunk_bytes, number_chunks[i], MPI_UNSIGNED, process_count - 1, 2, MPI_COMM_WORLD);
+                   MPI_Recv(chunk_sizes + number_chunks_offsets[i], number_chunks[i], MPI_UNSIGNED, i, 1, MPI_COMM_WORLD, &status);
+                   MPI_Recv(chunk_bytes + number_chunks_offsets[i], number_chunks[i], MPI_UNSIGNED, i, 2, MPI_COMM_WORLD, &status);
+                   dbg(3, "rank %i, after first recv", rank);
                 }
-             }
+              }
+              MPI_Barrier(MPI_COMM_WORLD);
+              // Get chunk_table_start_position
+              I64 chunk_table_start_position = 0;
+              if(rank==0)MPI_Send(&(laswriter->get_writer()->chunk_table_start_position), 1, MPI_LONG_LONG_INT, process_count-1, 3, MPI_COMM_WORLD);
+              if(rank==process_count -1)MPI_Recv(&chunk_table_start_position, 1, MPI_LONG_LONG_INT, 0, 3, MPI_COMM_WORLD, &status);
 
-
-              // TODO, gather chunk counts and chunk sizes, write the chuck_table with rank 0
-
-
-
-
-              //laswriter->get_writer()->done();
-              //point_end_offset = laswriter->get_stream()->tell();
-
-              //dbg(3, "rank %i point_start_offset %lli  point_end_offset %lli", rank, point_start_offset, point_end_offset);
+              if(rank==process_count-1)
+              {
+                laswriter->get_writer()->number_chunks = number_chunks_total;
+                laswriter->get_writer()->chunk_sizes = chunk_sizes;
+                laswriter->get_writer()->chunk_bytes = chunk_bytes;
+                laswriter->get_writer()->write_chunk_table();
+                //laswriter->close();
+              }
 
 
 
             }
             // flush the writer
             // jdw, comment next line
-            bytes_written = laswriter->close();
+            //bytes_written = laswriter->close();
           }
         }
         else
@@ -983,7 +1000,7 @@ int main(int argc, char *argv[])
         }
       }
 
-      delete laswriter;
+      //delete laswriter;
   
 #ifdef _WIN32
       if (verbose) fprintf(stderr,"%g secs to write %I64d bytes for '%s' with %I64d points of type %d\n", taketime()-start_time, bytes_written, laswriteopener.get_file_name(), lasreader->p_count, lasreader->header.point_data_format);
