@@ -206,6 +206,7 @@ BOOL LASwritePoint::setup(const U32 num_items, const LASitem* items, const LASzi
       if (laszip->chunk_size) chunk_size = laszip->chunk_size;
       chunk_count = 0;
       number_chunks = U32_MAX;
+      //printf("************************** chunk_size %u\n", chunk_size);
     }
   }
   return TRUE;
@@ -228,7 +229,8 @@ BOOL LASwritePoint::init(ByteStreamOut* outstream)
     {
       chunk_table_start_position = -1;
     }
-    if(rank==0) outstream->put64bitsLE((U8*)&chunk_table_start_position);
+    //if(rank==0) outstream->put64bitsLE((U8*)&chunk_table_start_position);
+    outstream->put64bitsLE((U8*)&chunk_table_start_position);
     chunk_start_position = outstream->tell();
   }
 

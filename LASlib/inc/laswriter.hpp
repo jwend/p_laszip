@@ -111,6 +111,7 @@ public:
   LASwaveform13writer* open_waveform13(const LASheader* lasheader);
   LASwriteOpener();
   ~LASwriteOpener();
+  BOOL use_nil;
 private:
   void add_directory(const CHAR* directory=0);
   void add_appendix(const CHAR* appendix=0);
@@ -130,7 +131,7 @@ private:
   BOOL force;
   U32 chunk_size;
   BOOL use_stdout;
-  BOOL use_nil;
+//  BOOL use_nil;
   BOOL buffered;
 };
 
