@@ -840,9 +840,13 @@ int main(int argc, char *argv[])
               point_start_offset = laswriter->get_stream()->tell();
               lasreader->seek(point_start);
               dbg(3, "rank %i point_start %lli point_end %lli", rank, point_start, point_end);
-
+              //int dbg_cnt =0;
               while (lasreader->read_point())
               {
+                //if(dbg_cnt < 5){
+                //  dbg(3,"rank %i, lasreader->point.X %i, lasreader->point.Y %i", rank, lasreader->point.X, lasreader->point.Y);
+                //  dbg_cnt++;
+                //}
                 laswriter->write_point(&lasreader->point);
                 if(laswriter->p_count == point_end-point_start)
                 {
@@ -875,6 +879,7 @@ int main(int argc, char *argv[])
               //laswriter->close();
               MPI_Barrier(MPI_COMM_WORLD);
               laswriteopener.use_nil=FALSE;
+
               laswriter = laswriteopener.open(&lasreader->header);
               MPI_Barrier(MPI_COMM_WORLD);
               I64 write_point_offset = laswriter->get_stream()->tell();
