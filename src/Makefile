@@ -21,6 +21,7 @@ all: laszip
 
 laszip: laszip.o geoprojectionconverter.o 
 	${LINKER} ${BITS} ${COPTS} laszip.o geoprojectionconverter.o -llas -o $@ ${LIBS} ${LASLIBS} $(INCLUDE) $(LASINCLUDE)
+	mkdir -p ../bin
 	cp $@ ../bin/p_laszip
 
 lasinfo: lasinfo.o geoprojectionconverter.o
@@ -63,10 +64,10 @@ lasindex: lasindex.o
 
 clean:
 	rm -rf *.o
-	rm -rf laszip lasinfo lasprecision las2txt txt2las las2las lasdiff lasmerge lasindex
+	rm -rf laszip lasinfo lasprecision las2txt txt2las las2las lasdiff lasmerge lasindex liblas.a
 
 clobber:
 	rm -rf *.o
-	rm -rf laszip lasinfo lasprecision las2txt txt2las las2las lasdiff lasmerge lasindex 
+	rm -rf laszip lasinfo lasprecision las2txt txt2las las2las lasdiff lasmerge lasindex liblas.a
 	rm -rf *~
  
