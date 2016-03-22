@@ -963,7 +963,7 @@ int main(int argc, char *argv[])
                   dbg(5, "rank , chunk_bytes %u",  chunk_bytes[i]);
                 }
               }
-              // **** Finally the last process writes the aggregated chunk table
+              // **** Finally the last process writes the aggregated chunk *******
               if(rank==process_count-1)
               {
                 laswriter->get_writer()->chunk_table_start_position = chunk_table_start_position;

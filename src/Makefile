@@ -16,11 +16,12 @@ LINKER ?= mpic++
 LASLIBS     = -L../LASlib/lib
 LASINCLUDE  = -I../LASzip/src -I../LASlib/inc 
 
-all: laszip lasinfo lasprecision las2txt txt2las las2las lasdiff lasmerge lasindex
+#all: laszip lasinfo lasprecision las2txt txt2las las2las lasdiff lasmerge lasindex
+all: laszip
 
 laszip: laszip.o geoprojectionconverter.o 
 	${LINKER} ${BITS} ${COPTS} laszip.o geoprojectionconverter.o -llas -o $@ ${LIBS} ${LASLIBS} $(INCLUDE) $(LASINCLUDE)
-	cp $@ ../bin
+	cp $@ ../bin/p_laszip
 
 lasinfo: lasinfo.o geoprojectionconverter.o
 	${LINKER} ${BITS} ${COPTS} lasinfo.o geoprojectionconverter.o -llas -o $@ ${LIBS} ${LASLIBS} $(INCLUDE) $(LASINCLUDE)
@@ -66,5 +67,6 @@ clean:
 
 clobber:
 	rm -rf *.o
-	rm -rf laszip lasinfo lasprecision las2txt txt2las las2las lasdiff lasmerge lasindex
+	rm -rf laszip lasinfo lasprecision las2txt txt2las las2las lasdiff lasmerge lasindex 
 	rm -rf *~
+ 
