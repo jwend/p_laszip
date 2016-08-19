@@ -29,7 +29,7 @@ Test:
 
 mpirun -n 3 bin/p_laszip -i data/test.las -o test.laz
 mpirun -n 3 bin/p_laszip -i test.laz -o test.las
-
+diff data/test.las test.las
 
 Limitations and Supported Features:
 
